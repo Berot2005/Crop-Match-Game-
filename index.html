@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Crop Match - Educational Game</title>
+<style>
+  :root{
+    --bg1:#0f2027; --bg2:#203a43; --bg3:#2c5364;
+    --card:#1a2a33; --accent:#00d4aa; --danger:#ff4d6d; --text:#f0f8ff;
+  }
+  *{box-sizing:border-box;font-family:'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent;}
+  body{
+    background: linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+    color:var(--text);display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;
+    user-select:none; -webkit-user-select:none; touch-action: manipulation;
+  }
+.game{
+    width:95%;
+    max-width:600px;
+    padding:24px;
+    position:relative;
+}
+  h1{text-align:center;margin:0 0 15px;font-size:1.6rem;letter-spacing:1px}
+.hud{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;font-weight:600;font-size:1rem}
+.timer{color:#ffd166}
+.level-select{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+  button{
+    background:linear-gradient(135deg,#00c853,#00bfa5);
+    color:white;
+    border:none;
+    padding:15px;
+    border-radius:15px;
+    font-size:1rem;
+    font-weight:700;
+    cursor:pointer;
+    transition:all .25s ease;
+    box-shadow:0 6px 15px rgba(0,212,170,.35);
+}<div></div>
+  button:hover{
+    transform:translateY(-3px) scale(1.03);
+    box-shadow:0 10px 20px rgba(0,212,170,.5);
+}
+  
+  .choices.paused{
+    pointer-events:none;
+    opacity:.5;
+}
+
+.top-bar{
+    position:fixed;
+    top:12px;
+    right:12px;
+    z-index:99999;
+}
+
+.menu-btn{
+    width:48px;
+    height:48px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    background:rgba(30,45,55,.95);
+    border:none;
+    border-radius:12px;
+
+    color:#fff;
+    font-size:30px;
+    cursor:pointer;
+
+    box-shadow:0 6px 18px rgba(0,0,0,.25);
+}
+.menu-btn:hover{
+    background:rgba(0,212,170,.18);
+    transform:scale(1.05);
+}
+
+.menu-btn:active{
+    transform:scale(.95);
+}
+
+.sideMenu{
+
+position:fixed;
+
+top:0;
+
+right:-320px;
+
+width:300px;
+
+height:100%;
+
+background:#1a2a33;
+
+transition:.3s;
+
+padding:20px;
+
+z-index:9999;
+
+overflow:auto;
+
+}
+
+.sideMenu.open{
+
+right:0;
+
+}
+
+.sideMenu h3{
+
+text-align:center;
+
+margin-top:20px;
+
+}
+
+.sideMenu ul{
+
+list-style:none;
+
+padding:0;
+
+}
+
+.sideMenu li{
+
+padding:12px;
+
+border-bottom:1px solid #555;
+
+}
+  button.primary{background:var(--accent);color:#0f2027;border:none}
+  button.icon-btn{padding:8px 12px;font-size:1.2rem}
+.crop-img{width:100px;height:100px;margin:0 auto 10px;background:#2f3e46;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:3rem}
+.crop-name{display:flex;justify-content:center;align-items:center;gap:8px;font-size:2rem;margin:10px 0;font-weight:700;color:var(--accent)}
+.choices{display:grid;gap:12px}
+.choice{
+    background:linear-gradient(135deg,#2b5876,#4e4376);
+    color:white;
+    padding:16px;
+    border-radius:15px;
+    border:none;
+    font-weight:700;
+    transition:.2s;
+    box-shadow:0 5px 12px rgba(0,0,0,.3);
+}padding:16px;border-radius:12px;text-align:center;cursor:pointer;font-weight:600;transition:.15s;border:2px solid transparent}
+.choice:hover{
+    transform:scale(1.03);
+    background:linear-gradient(135deg,#00c853,#00bfa5);
+}
+.choice.correct{
+    background:linear-gradient(135deg,#00e676,#00c853);
+    color:white;
+    border-color:#00e676;
+}
+.choice.wrong{
+    background:linear-gradient(135deg,#ff5252,#d50000);
+    color:white;
+    border-color:#ff5252;
+}
+.choice.disabled{pointer-events:none;opacity:.6}
+.hidden{display:none}
+.lives{color:var(--danger)}
+.footer{text-align:center;font-size:.8rem;margin-top:12px;opacity:.6}
+  @keyframes pop{0%{transform:scale(.9)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
+.pop{animation:pop.3s ease}
+menu
+  /* Feedback Popup */
+#feedback{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%) scale(.9);
+
+    width:220px;          /* gikan sa 320px */
+    max-width:75%;
+
+    padding:14px 16px;    /* gikan sa 22px */
+
+    background:#222831;
+    color:#fff;
+    text-align:center;
+
+    border-radius:16px;
+
+    display:none;
+    opacity:0;
+
+    z-index:999999;
+
+    transition:.25s ease;
+    box-shadow:0 8px 20px rgba(0,0,0,.35);    
+}
+
+#feedback{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%) scale(.85);
+
+    min-width:220px;
+    max-width:260px;
+
+    padding:16px 20px;
+
+    background:rgba(25,32,40,.97);
+    color:#fff;
+
+    border-radius:18px;
+
+    text-align:center;
+
+    display:none;
+    opacity:0;
+
+    z-index:99999;
+
+    backdrop-filter:blur(10px);
+
+    box-shadow:0 10px 25px rgba(0,0,0,.35);
+
+    transition:all .25s ease;
+}
+
+#feedback.show{
+    opacity:1;
+    transform:translate(-50%,-50%) scale(1);
+}
+
+#feedback.correct{
+    border-left:6px solid #34C759;
+}
+
+#feedback.wrong{
+    border-left:6px solid #FF5A5F;
+}
+
+#feedback .icon{
+    font-size:34px;
+    margin-bottom:8px;
+}
+
+#feedback .title{
+    font-size:22px;
+    font-weight:700;
+    margin-bottom:8px;
+}
+
+#feedback.correct .title{
+    color:#34C759;
+}
+
+#feedback.wrong .title{
+    color:#FF5A5F;
+}
+
+#feedback .crop{
+    font-size:20px;
+    font-weight:600;
+    color:#fff;
+}
+
+#feedback .text{
+    color:#C8D1DA;
+    font-size:14px;
+    margin:6px 0;
+}
+
+#feedback .family{
+    font-size:18px;
+    font-weight:700;
+    color:#F5F7FA;
+}
+@keyframes feedbackPop{
+    0%{
+        transform:translate(-50%,-50%) scale(.6);
+        opacity:0;
+    }
+
+    60%{
+        transform:translate(-50%,-50%) scale(1.08);
+        opacity:1;
+    }
+
+    100%{
+        transform:translate(-50%,-50%) scale(1);
+        opacity:1;
+    }
+}  
+
+  /* Info Modal */
+  #infoModal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);display:none;justify-content:center;align-items:center;z-index:999}
+ .info-box{background:var(--card);padding:20px;border-radius:15px;max-width:400px}
+ .review-item{padding:10px;margin:8px 0;background:#2f3e46;border-radius:10px;text-align:left}
+ .review-item.wrong{color:var(--danger)}
+ .review-item.right{color:var(--accent)}
+ .progress-bar{height:6px;background:#2f3e46;border-radius:3px;margin-bottom:10px;overflow:hidden}
+ .progress{height:100%;background:var(--accent);width:0%;transition:.3s}
+  small.desc{opacity:.7;font-size:.8rem;display:block}
+  @media(min-width:768px){button{font-size:1.1rem;padding:16px}}
+  #loadingScreen{
+    position:fixed;
+    inset:0;
+    background:#10252d;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    color:white;
+    z-index:9999;
+}
+
+.loader{
+    width:60px;
+    height:60px;
+    border:6px solid #444;
+    border-top:6px solid #00d4aa;
+    border-radius:50%;
+    animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+    to{transform:rotate(360deg);}
+}
+
+#offlineScreen{
+    position:fixed;
+    inset:0;
+    background:#10252d;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    color:white;
+    text-align:center;
+    z-index:9999;
+}
+
+#offlineScreen button{
+    margin-top:20px;
+    padding:12px 24px;
+    border:none;
+    border-radius:10px;
+    background:#00d4aa;
+    color:#000;
+    font-weight:bold;
+}
+
+.plain-menu{
+    backg#feedback{
+    position:fixed;
+
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:320px;
+    max-width:90%;
+    padding:22px;
+    background:#000;
+    color:#fff;
+    text-align:center;
+    border-radius:22px;
+
+    display:none;
+
+    z-index:999999;
+
+    box-shadow:0 0 30px rgba(0,0,0,.6);
+}
+
+#feedback.correct{
+    border:4px solid #00ffd5;
+    box-shadow:0 0 25px #00ffd5;
+}
+
+#feedback.wrong{
+    border:4px solid #ff4d7a;
+    box-shadow:0 0 25px #ff4d7around:transparent;
+    border:none;
+    box-shadow:none;
+    padding:0;
+}
+</style>
+</head>
+<body>
+
+<div class="game" id="mainGame">
+  <h1>🌱 Crop Match Game</h1>
+
+  <div id="feedback"></div>
+  <div id="infoModal"><div class="info-box"><h3 id="infoTitle"></h3><p id="infoText"></p><button onclick="closeInfo()">Close</button></div></div>
+
+  <audio id="correctSound" src="correctsound.mp3" preload="auto"></audio>
+  <audio id="wrongSound" src="wrongsound.mp3" preload="auto"></audio>
+  <audio id="gameOverSound" src="gameover.mp3" preload="auto"></audio>
+  <audio id="bubbleSound" src="bubblesound.mp3" preload="auto"></audio>
+  <audio id="bgMusic" src="background music.mp3" preload="auto" loop></audio>
+  
+  <div class="top-bar" id="topBar">
+
+<button class="menu-btn"
+onclick="toggleMenu()">
+
+☰
+
+</button>
+
+</div>
+<div class="sideMenu" id="sideMenu">
+
+<button onclick="toggleMenu()"
+style="width:100%">Close</button>
+
+<h3>Group Members</h3>
+
+<ul>
+
+<li>Andrea Ruth Almero</li>
+
+<li>Pamar Buaya</li>
+
+<li>Alaiza Marquez</li>
+
+<li>Jasserlyn Victor</li>
+
+<li>Vincent Joseph Garcia</li>
+
+<li>Ellaiza Abiado</li>
+
+</ul>
+
+</div>
+
+  <div id="menu" class="plain-menu">
+    <p style="text-align:center;opacity:.8">Select Difficulty Level</p>
+    <div class="level-select">
+      <button class="btn-sound" onclick="startGame('easy')">Easy<br><small class="desc">+1s Bonus</small></button>
+      <button class="btn-sound" onclick="startGame('Normal')">Normal<br><small class="desc">+2s Bonus</small></button>
+      <button class="btn-sound" onclick="startGame('hard')">Hard<br><small class="desc">+5s Bonus</small></button>
+      <button class="btn-sound" onclick="startGame('expert')">Engr Yarn<br><small class="desc">3 Lives Only</small></button>
+    </div>
+    <p style="text-align:center">Best Time: <span id="bestTime">0</span>s</p>
+  </div>
+  <div id="loadingScreen">
+    <div class="loader"></div>
+    <h2>Crop Match Game</h2>
+    <p>Loading...</p>
+</div>
+<div id="offlineScreen" style="display:none;">
+    <h2>📡 No Internet Connection</h2>El
+    <p>Please connect to the internet and try again.</p>
+    <button onclick="location.reload()">Retry</button>
+</div>
+
+  <div id="gameScreen" class="hidden">
+    <div class="progress-bar"><div class="progress" id="progress"></div></div>
+    <div class="hud">
+      <div>Q: <span id="qCount">1</span></div>
+      <div class="timer">⏱ <span id="time">60</span>s</div>
+      <div>
+        <button class="icon-btn" onclick="toggleMute()" id="muteBtn">🔊</button>
+        <button class="icon-btn" onclick="togglePause()" id="pauseBtn">❚❚</button>
+        <span class="lives">❤️ <span id="lives">∞</span></span>
+      </div>
+    </div>
+    <div class="crop-img" id="cropImg">🥕</div>
+
+<div class="crop-name">
+    <span id="cropName">Loading...</span>
+    <button class="icon-btn" onclick="showInfo()">🧬</button>
+</div>
+
+<div id="feedback"></div>
+
+<div class="choices" id="choices"></div>
+
+<button class="btn-sound" onclick="goMenu()" style="margin-top:18px;width:100%">
+    Back to Menu
+</button>
+  </div>
+
+  <div id="gameOver" class="hidden">
+    <h2 style="text-align:center">Game Over!</h2>
+    <h3 style="text-align:center;color:var(--accent)">Review Your Mistakes</h3>
+    <div id="reviewList" style="max-height:300px;overflow-y:auto;margin:15px 0"></div>
+    <button class="btn-sound primary" onclick="goMenu()" style="width:100%">Play Again</button>
+  </div>
+
+  <p class="footer">Learn Crop Scientific Classification</p>
+</div>
+
+<script>
+const cropData = [
+  {crop:"Tomato", family:"Solanaceae", emoji:"🍅", examples:"Potato, Eggplant, Pepper"},
+  {crop:"Eggplant", family:"Solanaceae", emoji:"🍆", examples:"Tomato, Potato, Pepper"},
+  {crop:"Chili Pepper", family:"Solanaceae", emoji:"🌶️", examples:"Tomato, Potato, Eggplant"},
+  {crop:"Potato", family:"Solanaceae", emoji:"🥔", examples:"Tomato, Eggplant, Pepper"},
+  {crop:"Cabbage", family:"Brassicaceae", emoji:"🥬", examples:"Broccoli, Cauliflower, Kale"},
+  {crop:"Broccoli", family:"Brassicaceae", emoji:"🥦", examples:"Cabbage, Cauliflower, Kale"},
+  {crop:"Cauliflower", family:"Brassicaceae", emoji:"🥦", examples:"Cabbage, Broccoli, Kale"},
+  {crop:"Bitter Gourd", family:"Cucurbitaceae", emoji:"🥒", examples:"Squash, Cucumber, Watermelon"},
+  {crop:"Squash", family:"Cucurbitaceae", emoji:"🎃", examples:"Cucumber, Watermelon, Melon"},
+  {crop:"Cucumber", family:"Cucurbitaceae", emoji:"🥒", examples:"Squash, Watermelon, Melon"},
+  {crop:"Watermelon", family:"Cucurbitaceae", emoji:"🍉", examples:"Cucumber, Squash, Melon"},
+  {crop:"String Beans", family:"Fabaceae", emoji:"🫘", examples:"Peanut, Soybean, Peas"},
+  {crop:"Peanut", family:"Fabaceae", emoji:"🥜", examples:"Beans, Soybean, Peas"},
+  {crop:"Cowpea", family:"Fabaceae", emoji:"🫘", examples:"Beans, Peanut, Soybean"},
+  {crop:"Corn", family:"Poaceae", emoji:"🌽", examples:"Rice, Wheat, Sugarcane"},
+  {crop:"Rice", family:"Poaceae", emoji:"🍚", examples:"Corn, Wheat, Sugarcane"},
+  {crop:"Sugarcane", family:"Poaceae", emoji:"🌾", examples:"Corn, Rice, Wheat"},
+  {crop:"Apple", family:"Rosaceae", emoji:"🍎", examples:"Strawberry, Peach, Cherry"},
+  {crop:"Strawberry", family:"Rosaceae", emoji:"🍓", examples:"Apple, Peach, Cherry"},
+  {crop:"Orange", family:"Rutaceae", emoji:"🍊", examples:"Lemon, Lime, Grapefruit"},
+  {crop:"Lemon", family:"Rutaceae", emoji:"🍋", examples:"Orange, Lime, Grapefruit"},
+  {crop:"Carrot", family:"Apiaceae", emoji:"🥕", examples:"Celery, Parsley, Coriander"},
+  {crop:"Celery", family:"Apiaceae", emoji:"🌿", examples:"Carrot, Parsley, Coriander"},
+  {crop:"Onion", family:"Amaryllidaceae", emoji:"🧅", examples:"Garlic, Leek, Shallot"},
+  {crop:"Garlic", family:"Amaryllidaceae", emoji:"🧄", examples:"Onion, Leek, Shallot"},
+  {crop:"Pineapple", family:"Bromeliaceae", emoji:"🍍", examples:"Tropical fruit"},
+  {crop:"Banana", family:"Musaceae", emoji:"🍌", examples:"Plantain"},
+  {crop:"Mango", family:"Anacardiaceae", emoji:"🥭", examples:"Cashew, Pistachio"},
+  {crop:"Grapes", family:"Vitaceae", emoji:"🍇", examples:"Wine grape"},
+  {crop:"Okra", family:"Malvaceae", emoji:"🟢", examples:"Cotton, Hibiscus"},
+  {crop:"Bell Pepper", family:"Solanaceae", emoji:"🫑", examples:"Tomato, Eggplant, Chili Pepper"},
+{crop:"Sweet Potato", family:"Convolvulaceae", emoji:"🍠", examples:"Morning Glory, Water Spinach"},
+{crop:"Cassava", family:"Euphorbiaceae", emoji:"🌱", examples:"Rubber Tree, Castor Bean"},
+{crop:"Radish", family:"Brassicaceae", emoji:"🥬", examples:"Cabbage, Broccoli, Turnip"},
+{crop:"Mustard Greens", family:"Brassicaceae", emoji:"🥬", examples:"Cabbage, Kale, Broccoli"},
+{crop:"Kale", family:"Brassicaceae", emoji:"🥬", examples:"Cabbage, Broccoli, Cauliflower"},
+{crop:"Turnip", family:"Brassicaceae", emoji:"🥕", examples:"Radish, Cabbage, Broccoli"},
+{crop:"Lettuce", family:"Asteraceae", emoji:"🥬", examples:"Sunflower, Chicory"},
+{crop:"Spinach", family:"Amaranthaceae", emoji:"🥬", examples:"Amaranth, Beetroot"},
+{crop:"Beetroot", family:"Amaranthaceae", emoji:"🍠", examples:"Spinach, Amaranth"},
+{crop:"Peas", family:"Fabaceae", emoji:"🟢", examples:"Beans, Peanut, Soybean"},
+{crop:"Soybean", family:"Fabaceae", emoji:"🫘", examples:"Peanut, Cowpea, Peas"},
+{crop:"Mung Bean", family:"Fabaceae", emoji:"🫘", examples:"Peanut, Soybean, Cowpea"},
+{crop:"Kidney Bean", family:"Fabaceae", emoji:"🫘", examples:"Peanut, Soybean, Peas"},
+{crop:"Bottle Gourd", family:"Cucurbitaceae", emoji:"🥒", examples:"Squash, Cucumber, Chayote"},
+{crop:"Chayote", family:"Cucurbitaceae", emoji:"🥒", examples:"Bottle Gourd, Squash, Cucumber"},
+{crop:"Zucchini", family:"Cucurbitaceae", emoji:"🥒", examples:"Squash, Cucumber, Melon"},
+{crop:"Melon", family:"Cucurbitaceae", emoji:"🍈", examples:"Watermelon, Cucumber, Squash"},
+{crop:"Taro", family:"Araceae", emoji:"🍠", examples:"Elephant Ear, Giant Taro"},
+{crop:"Ginger", family:"Zingiberaceae", emoji:"🫚", examples:"Turmeric, Cardamom"},
+{crop:"Turmeric", family:"Zingiberaceae", emoji:"🟠", examples:"Ginger, Cardamom"},
+{crop:"Papaya", family:"Caricaceae", emoji:"🍈", examples:"Mountain Papaya"},
+{crop:"Guava", family:"Myrtaceae", emoji:"🍈", examples:"Eucalyptus, Clove"},
+{crop:"Avocado", family:"Lauraceae", emoji:"🥑", examples:"Cinnamon, Bay Laurel"},
+{crop:"Jackfruit", family:"Moraceae", emoji:"🍈", examples:"Breadfruit, Fig"},
+{crop:"Durian", family:"Malvaceae", emoji:"🟢", examples:"Cacao, Hibiscus"},
+{crop:"Rambutan", family:"Sapindaceae", emoji:"🔴", examples:"Lychee, Longan"},
+{crop:"Lychee", family:"Sapindaceae", emoji:"🍒", examples:"Rambutan, Longan"},
+{crop:"Longan", family:"Sapindaceae", emoji:"🟤", examples:"Lychee, Rambutan"},
+{crop:"Lanzones", family:"Meliaceae", emoji:"🟡", examples:"Mahogany, Neem"},
+{crop:"Santol", family:"Meliaceae", emoji:"🍈", examples:"Mahogany, Neem"},
+{crop:"Calamansi", family:"Rutaceae", emoji:"🍋", examples:"Orange, Lemon, Lime"},
+{crop:"Lime", family:"Rutaceae", emoji:"🍋", examples:"Orange, Lemon, Calamansi"},
+{crop:"Pomelo", family:"Rutaceae", emoji:"🍊", examples:"Orange, Grapefruit, Lemon"},
+{crop:"Dragon Fruit", family:"Cactaceae", emoji:"🐉", examples:"Prickly Pear, Cactus"},
+{crop:"Pear", family:"Rosaceae", emoji:"🍐", examples:"Apple, Peach, Cherry"},
+{crop:"Peach", family:"Rosaceae", emoji:"🍑", examples:"Apple, Pear, Cherry"},
+{crop:"Cherry", family:"Rosaceae", emoji:"🍒", examples:"Apple, Peach, Pear"},
+{crop:"Plum", family:"Rosaceae", emoji:"🟣", examples:"Peach, Cherry, Apple"},
+{crop:"Coconut", family:"Arecaceae", emoji:"🥥", examples:"Oil Palm, Date Palm"},
+{crop:"Oil Palm", family:"Arecaceae", emoji:"🌴", examples:"Coconut, Date Palm"},
+{crop:"Date Palm", family:"Arecaceae", emoji:"🌴", examples:"Coconut, Oil Palm"},
+{crop:"Asparagus", family:"Asparagaceae", emoji:"🌿", examples:"Agave, Yucca"},
+{crop:"Leek", family:"Amaryllidaceae", emoji:"🧅", examples:"Onion, Garlic, Shallot"},
+{crop:"Shallot", family:"Amaryllidaceae", emoji:"🧅", examples:"Onion, Garlic, Leek"},
+{crop:"Parsley", family:"Apiaceae", emoji:"🌿", examples:"Carrot, Celery, Coriander"},
+{crop:"Coriander", family:"Apiaceae", emoji:"🌿", examples:"Carrot, Celery, Parsley"},
+{crop:"Artichoke", family:"Asteraceae", emoji:"🌿", examples:"Sunflower, Lettuce"},
+{crop:"Brussels Sprouts", family:"Brassicaceae", emoji:"🥬", examples:"Cabbage, Broccoli, Kale"},
+{crop:"Amaranth", family:"Amaranthaceae", emoji:"🌿", examples:"Spinach, Beetroot"},
+];
+  
+let currentLevel, time, timerInterval, lives, wrongCount, bgPlaying = false, muted = false, paused = false, qCount = 0;
+let reviewMistakes = []; let currentCrop = {};
+const levelSettings = {easy:{bonus:1}, Normal:{bonus:2}, hard:{bonus:5}, expert:{bonus:5, strikes:3}};
+
+const correctAudio = document.getElementById('correctSound');
+const wrongAudio = document.getElementById('wrongSound');
+const gameOverAudio = document.getElementById('gameOverSound');
+const bubbleAudio = document.getElementById('bubbleSound');
+const bgMusic = document.getElementById('bgMusic');
+const feedbackEl = document.getElementById('feedback');
+
+// Load Best Time
+document.getElementById('bestTime').innerText = localStorage.getItem('cropBestTime') || 0;
+
+function playSound(type){
+  if(muted) return;
+  let audio;
+  if(type === 'correct') audio = correctAudio;
+  if(type === 'wrong') audio = wrongAudio;
+  if(type === 'gameover') audio = gameOverAudio;
+  if(type === 'bubble') audio = bubbleAudio;
+  if(audio){ audio.currentTime = 0; audio.play().catch(()=>{}); }
+}
+
+function toggleMenu(){
+
+    const menu = document.getElementById("sideMenu");
+    const topBar = document.getElementById("topBar");
+
+    menu.classList.toggle("open");
+
+    if(menu.classList.contains("open")){
+        topBar.style.display = "none";
+    }else{
+        topBar.style.display = "block";
+    }
+
+}
+
+function toggleMute(){
+  muted = !muted;
+  document.getElementById('muteBtn').innerText = muted? '🔇' : '🔊';
+  bgMusic.muted = muted;
+}
+
+function togglePause(){
+
+    paused = !paused;
+
+    document.getElementById("pauseBtn").innerText =
+        paused ? "▶" : "❚❚";
+
+    const choices = document.getElementById("choices");
+
+    if(paused){
+
+        choices.classList.add("paused");
+
+        clearInterval(timerInterval);
+
+        // Pause background music
+        bgMusic.pause();
+
+    }else{
+
+        choices.classList.remove("paused");
+
+        timerInterval = setInterval(updateTimer, 1000);
+
+        // Resume background music
+        if(!muted){
+            bgMusic.play().catch(()=>{});
+        }
+
+    }
+
+}
+function showInfo(){
+  document.getElementById('infoModal').style.display = 'flex';
+  document.getElementById('infoTitle').innerText = currentCrop.family;
+  document.getElementById('infoText').innerText = `Examples: ${currentCrop.examples}`;
+}
+function closeInfo(){ document.getElementById('infoModal').style.display = 'none'; }
+
+function showFeedback(isCorrect, crop){
+
+    const feedbackEl = document.getElementById("feedback");
+
+    feedbackEl.className = "";
+
+    feedbackEl.classList.add(
+        isCorrect ? "correct" : "wrong"
+    );
+
+    feedbackEl.innerHTML = `
+        <div class="icon">
+            ${isCorrect ? "✅" : "❌"}
+        </div>
+
+        <div class="title">
+            ${isCorrect ? "Correct!" : "Wrong!"}
+        </div>
+
+        <div class="crop">
+            ${crop.crop}
+        </div>
+
+        <div class="text">
+            belongs to
+        </div>
+
+        <div class="family">
+            ${crop.family}
+        </div>
+    `;
+
+    feedbackEl.style.display = "block";
+
+    requestAnimationFrame(()=>{
+        feedbackEl.classList.add("show");
+    });
+
+    setTimeout(()=>{
+        feedbackEl.classList.remove("show");
+
+        setTimeout(()=>{
+            feedbackEl.style.display = "none";
+        },250);
+
+    },1200);
+}
+document.addEventListener('click', function(e){
+  if(e.target.classList.contains('btn-sound')) playSound('bubble');
+});
+
+function startGame(level){
+  playSound('bubble'); playBGMusic();
+  currentLevel = level; time = 60; wrongCount = 0; reviewMistakes = []; qCount = 0; paused = false;
+  lives = level === 'expert'? 3 : '∞';
+
+  document.getElementById('menu').classList.add('hidden');
+
+document.getElementById("topBar").style.display = "none";
+   document.getElementById('gameOver').classList.add('hidden');
+  document.getElementById('gameScreen').classList.remove('hidden');
+
+  updateHUD(); loadQuestion();
+  clearInterval(timerInterval);
+  timerInterval = setInterval(updateTimer, 1000);
+}
+
+function playBGMusic(){ if(!bgPlaying){ bgMusic.volume = 0.3; bgMusic.play().catch(()=>{}); bgPlaying = true; } }
+function stopBGMusic(){ bgMusic.pause(); bgMusic.currentTime = 0; bgPlaying = false; }
+
+function updateHUD(){
+  document.getElementById('time').innerText = time;
+  document.getElementById('lives').innerText = lives;
+  document.getElementById('qCount').innerText = qCount;
+  document.getElementById('progress').style.width = (time/60*100) + '%';
+}
+
+function updateTimer(){
+  if(paused) return;
+  time--;
+  if(time <= 0){ time = 0; endGame(); }
+  if(time > localStorage.getItem('cropBestTime')) localStorage.setItem('cropBestTime', time);
+  updateHUD();
+}
+
+function loadQuestion(){
+  qCount++;
+  currentCrop = cropData[Math.floor(Math.random()*cropData.length)];
+  document.getElementById('cropName').innerText = currentCrop.crop;
+  document.getElementById('cropImg').innerText = currentCrop.emoji;
+
+  let choices = [currentCrop.family];
+  while(choices.length < 4){
+    let rand = cropData[Math.floor(Math.random()*cropData.length)].family;
+    if(!choices.includes(rand)) choices.push(rand);
+  }
+  choices.sort(()=>Math.random()-0.5);
+
+  const choicesDiv = document.getElementById('choices');
+  choicesDiv.innerHTML = '';
+  choices.forEach(fam=>{
+    const btn = document.createElement('div');
+    btn.className = 'choice';
+    btn.innerText = fam;
+    btn.onclick = () => checkAnswer(btn, fam, currentCrop);
+    choicesDiv.appendChild(btn);
+  });
+}
+
+function checkAnswer(btn, selected, cropObj){
+  document.querySelectorAll('.choice').forEach(b=>b.classList.add('disabled'));
+  const isCorrect = selected === cropObj.family;
+
+  if(isCorrect){
+    btn.classList.add('correct'); playSound('correct');
+    time += levelSettings[currentLevel].bonus;
+    showFeedback(true, cropObj);
+  } else {
+    btn.classList.add('wrong'); playSound('wrong');
+    reviewMistakes.push({crop: cropObj.crop, wrong: selected, correct: cropObj.family});
+    showFeedback(false, cropObj);
+    if(currentLevel === 'expert'){
+      wrongCount++; lives = 3 - wrongCount;
+      if(wrongCount >= 3){ setTimeout(endGame, 1300); return; }
+    }
+  }
+  updateHUD();
+  setTimeout(loadQuestion, 1400);
+}
+
+function endGame(){
+  clearInterval(timerInterval); stopBGMusic(); playSound('gameover');
+  const reviewDiv = document.getElementById('reviewList');
+  reviewDiv.innerHTML = reviewMistakes.length === 0
+    ? '<p style="text-align:center;color:var(--accent)">Perfect! No mistakes 🎉</p>'
+    : reviewMistakes.map(m=>`
+      <div class="review-item">
+        <b>${m.crop}</b><br>
+        <span class="wrong">Your answer: ${m.wrong}</span><br>
+        <span class="right">Correct: ${m.correct}</span>
+      </div>
+    `).join('');
+  document.getElementById('gameScreen').classList.add('hidden');
+  document.getElementById('gameOver').classList.remove('hidden');
+}
+
+function goMenu(){
+
+    // Reset pause state
+    paused = false;
+
+    // Reset pause button icon
+    document.getElementById("pauseBtn").innerText = "❚❚";
+
+    // Enable choices
+    document.getElementById("choices").classList.remove("paused");
+
+    // Stop timer
+    clearInterval(timerInterval);
+
+    // Stop background music
+    stopBGMusic();
+
+    document.getElementById("gameScreen").classList.add("hidden");
+    document.getElementById("gameOver").classList.add("hidden");
+    document.getElementById("menu").classList.remove("hidden");
+    
+document.getElementById("topBar").style.display = "flex";
+    
+    
+
+}
+
+// Hide loading after 2 seconds
+window.onload = function () {
+    setTimeout(() => {
+       
+document.getElementById("topBar").style.display = "flex";       
+        document.getElementById("loadingScreen").style.display = "none";
+    }, 2000);
+};
+
+// Detect internet connection
+function checkConnection() {
+    if (!navigator.onLine) {
+        document.getElementById("offlineScreen").style.display = "block";
+        document.getElementById("mainGame").style.display = "none";
+    } else {
+        document.getElementById("offlineScreen").style.display = "none";
+        document.getElementById("mainGame").style.display = "block";
+    }
+}
+
+window.addEventListener("online", checkConnection);
+window.addEventListener("offline", checkConnection);
+checkConnection();
+
+// Prevent zoom
+let lastTouchEnd = 0;
+document.addEventListener('touchend', function (event) {
+  const now = new Date().getTime();
+  if (now - lastTouchEnd <= 300) event.preventDefault();
+  lastTouchEnd = now;
+}, false);
+</script>
+</body>
+</html>
